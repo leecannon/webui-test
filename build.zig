@@ -12,6 +12,11 @@ pub fn build(b: *std.Build) void {
     });
 
     exe.linkLibC();
+
+    if (target.isWindows()) {
+        exe.linkSystemLibrary("Ws2_32");
+    }
+
     exe.addIncludePath("webui/include");
     exe.addCSourceFile("webui/src/webui.c", &.{});
     exe.addCSourceFile("webui/src/mongoose.c", &.{});
