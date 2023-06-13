@@ -14,17 +14,20 @@ pub fn build(b: *std.Build) void {
     exe.linkLibC();
 
     if (target.isWindows()) {
+        exe.subsystem = .Console;
         exe.linkSystemLibrary("Ws2_32");
     }
 
     exe.addIncludePath("webui/include");
+    exe.addCSourceFile("webui/src/civetweb/civetweb.c", &.{
+        "-DNO_CACHING", "-DNO_CGI", "-DNO_SSL", "-DUSE_WEBSOCKET",
+    });
     exe.addCSourceFile("webui/src/webui.c", &.{});
-    exe.addCSourceFile("webui/src/mongoose.c", &.{});
 
-    exe.install();
+    const install_step = b.addInstallArtifact(exe);
 
-    const run_cmd = exe.run();
-    run_cmd.step.dependOn(b.getInstallStep());
+    const run_cmd = b.addRunArtifact(exe);
+    run_cmd.step.dependOn(&install_step.step);
 
     if (b.args) |args| {
         run_cmd.addArgs(args);
